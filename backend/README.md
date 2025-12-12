@@ -34,9 +34,13 @@ pnpm install
 
 ### 2. Environment Setup
 
-Copy the example environment file and fill in your values:
+Copy the example environment file and fill in your values.
+
+The backend will load environment variables from `.env.local` (preferred) and/or `.env`.
 
 ```bash
+cp .env.example .env.local
+# or
 cp .env.example .env
 ```
 

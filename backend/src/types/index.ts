@@ -110,16 +110,22 @@ export interface CreateApiKeyRequest {
 // Environment types
 export interface EnvConfig {
   NODE_ENV: 'development' | 'test' | 'production';
-  PORT: string;
+  PORT: number;
+
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
+
   CLAUDE_API_KEY: string;
+
   STRIPE_SECRET_KEY: string;
-  STRIPE_PUBLISHABLE_KEY: string;
-  STRIPE_WEBHOOK_SECRET: string;
-  DATABASE_URL: string;
-  JWT_SECRET: string;
+  STRIPE_PUBLISHABLE_KEY?: string;
+  STRIPE_PUBLIC_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
+
+  DATABASE_URL?: string;
+  JWT_SECRET?: string;
+
   CORS_ORIGINS: string;
 }
 
