@@ -208,14 +208,15 @@ CREATE POLICY "Anyone can view active pricing config" ON public.pricing_config
   FOR SELECT USING (is_active = TRUE);
 
 -- Insert default pricing tiers
+-- Note: recommendation-related rules are stored in the JSON `limits` column so they can be configured via seed.
 INSERT INTO public.pricing_config (tier_name, display_name, description, price_monthly_cents, price_yearly_cents, features, limits) VALUES
 ('free', 'Free', 'Perfect for getting started', 0, 0, 
  '["10 conversations per month", "100 messages per month", "Basic support"]'::jsonb,
- '{"conversations_per_month": 10, "messages_per_month": 100}'::jsonb),
+ '{"conversations_per_month": 10, "messages_per_month": 100, "requests_per_month": 50000, "supports_archive": false, "supported_geos": ["global"]}'::jsonb),
 ('pro', 'Pro', 'For power users', 1500, 15000,
  '["Unlimited conversations", "Unlimited messages", "Priority support", "Advanced models"]'::jsonb,
- '{"conversations_per_month": -1, "messages_per_month": -1}'::jsonb),
+ '{"conversations_per_month": -1, "messages_per_month": -1, "requests_per_month": 1000000, "supports_archive": true, "supported_geos": ["us", "eu", "global"]}'::jsonb),
 ('team', 'Team', 'For teams and collaboration', 5000, 50000,
  '["Everything in Pro", "Team management", "Usage analytics", "Custom integrations"]'::jsonb,
- '{"conversations_per_month": -1, "messages_per_month": -1, "team_members": 10}'::jsonb)
+ '{"conversations_per_month": -1, "messages_per_month": -1, "requests_per_month": -1, "team_members": 10, "supports_archive": true, "supported_geos": ["us", "eu", "apac", "global"]}'::jsonb)
 ON CONFLICT (tier_name) DO NOTHING;
