@@ -1,7 +1,7 @@
 import { env } from './utils/env';
 import app from './app';
 
-const PORT = parseInt(env.PORT, 10);
+const PORT = env.PORT;
 
 if (env.NODE_ENV !== 'test') {
   const server = app.listen(PORT, () => {
