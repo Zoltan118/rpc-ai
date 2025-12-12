@@ -50,7 +50,7 @@ router.post('/', authenticateUser, async (req: AuthenticatedRequest, res) => {
 
     const body: ChatRequestBody = parsed.data;
 
-    await ensureUserRow({ userId, email: req.user?.email });
+    await ensureUserRow({ userId, ...(req.user?.email && { email: req.user.email }) });
 
     const existingConversation = body.conversation_id
       ? await getConversationById({ conversationId: body.conversation_id, userId })
@@ -60,7 +60,7 @@ router.post('/', authenticateUser, async (req: AuthenticatedRequest, res) => {
       existingConversation ??
       (await createConversation({
         userId,
-        model: body.model,
+        ...(body.model && { model: body.model }),
         title: 'Pricing Recommendation',
       }));
 
@@ -92,7 +92,7 @@ router.post('/', authenticateUser, async (req: AuthenticatedRequest, res) => {
     const claude = await chatWithClaude({
       model: body.model ?? conversation.model,
       turns,
-      systemPrompt: conversation.system_prompt,
+      ...(conversation.system_prompt && { systemPrompt: conversation.system_prompt }),
     });
 
     const extractedAnswers = claude.extractedAnswers ?? emptyAnswers;

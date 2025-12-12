@@ -42,7 +42,7 @@ export const authenticateUser = async (
     // Attach user information to request
     req.user = {
       id: user.id,
-      email: user.email,
+      ...(user.email && { email: user.email }),
       user_metadata: user.user_metadata,
       app_metadata: user.app_metadata,
     };
@@ -80,7 +80,7 @@ export const optionalAuthenticate = async (
     if (user && !error) {
       req.user = {
         id: user.id,
-        email: user.email,
+        ...(user.email && { email: user.email }),
         user_metadata: user.user_metadata,
         app_metadata: user.app_metadata,
       };
