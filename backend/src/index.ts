@@ -1,42 +1,58 @@
-import { env } from './utils/env';
-import app from './app';
+import express from 'express';
+import { initDb, closeDb } from './db/index.js';
+import { rawBodyMiddleware } from './middleware/webhook.js';
+import paymentRoutes from './routes/payments.js';
+import webhookRoutes from './routes/webhooks.js';
+import apiKeyRoutes from './routes/api-keys.js';
+import 'dotenv/config';
 
-const PORT = parseInt(env.PORT, 10);
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-if (env.NODE_ENV !== 'test') {
-  const server = app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📋 Health check: http://localhost:${PORT}/health`);
-    console.log(`📋 API status: http://localhost:${PORT}/api/v1/status`);
-    console.log(`🔒 Environment: ${env.NODE_ENV}`);
-  });
+// Middleware
+app.use(rawBodyMiddleware);
+app.use(express.json());
 
-  const gracefulShutdown = (signal: string) => {
-    console.log(`\n🛑 Received ${signal}. Starting graceful shutdown...`);
+// Routes
+app.use(paymentRoutes);
+app.use(webhookRoutes);
+app.use(apiKeyRoutes);
 
-    server.close(() => {
-      console.log('✅ HTTP server closed');
-      process.exit(0);
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+// Error handling
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+// Start server
+async function start() {
+  try {
+    await initDb();
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
     });
-
-    setTimeout(() => {
-      console.error('❌ Could not close connections in time, forcefully shutting down');
-      process.exit(1);
-    }, 30000);
-  };
-
-  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-  process.on('uncaughtException', (error) => {
-    console.error('❌ Uncaught Exception:', error);
+  } catch (error) {
+    console.error('Failed to start server:', error);
     process.exit(1);
-  });
-
-  process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-    process.exit(1);
-  });
+  }
 }
 
-export default app;
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  await closeDb();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('SIGINT received, shutting down gracefully');
+  await closeDb();
+  process.exit(0);
+});
+
+start();
